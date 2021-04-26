@@ -1,0 +1,73 @@
+---
+title: "CONSORT Flow"
+author: "Tim Disher"
+date: "4/25/2021"
+output: html_document
+---
+
+# Create CONSORT/PRISMA style flow diagrams
+
+Could use variables more and hardcode less. See [DiagrammeRdocs](https://rich-iannone.github.io/DiagrammeR/graphviz_and_mermaid.html) 
+for more details.
+```{r}
+
+library(DiagrammeR)
+library(glue)
+
+trial_n <- c(s1 = 10, 
+             s2 = 10, 
+             s3 = 10,
+             s4 = 10,
+             s5 = 10)
+
+tot <- sum(trial_n)
+ex_ac <- sum(1, 1, 1, 1, 1)
+init_val <- tot - ex_ac
+ex_cleaning <- 4
+miss_out <- 1
+miss_cov <- 1
+
+
+grViz('digraph flowchart {
+      # node definitions with substituted label text
+      node [fontname = Helvetica, shape = rectangle]        
+      s1 [label = "Study 1\\n(N = xxx)"]
+      s2 [label = "Study 2\\n(N = xxx)"]
+      s3 [label = "Study 3\\n(N = xxx)"]
+      s4 [label = "Study 4\\n(N = xxx)"]
+      s5 [label = "Study 5\\n(N = xxx)"]
+      
+      act [label = "@@2"]
+      init [label = "@@1"] 
+      init_mod[ label = "@@3"]
+      ex [label = "@@4"]
+      mod [label = "@@5"]
+      
+      # Central arrows
+      {s1, s2, s3, s4, s5} -> init -> init_mod -> mod
+      
+       edge[constraint = false]
+      init -> act
+      init_mod -> ex
+      
+      
+      #Column 2 arrows
+      edge[arrowhead = none, color = "#00000000", constraint = true]
+      act -> ex
+     
+     
+     subgraph{
+     rank = same; init;act
+     }
+}
+      [1]: glue("Initial Dataset\\n(N = {tot})")
+      [2]: glue("Remove patients on active treatment\\n(N = {ex_ac})")
+      [3]: glue("Initial validation set\\n(N = {init_val})")
+      [4]: glue("Excluded during data cleaning (n = {ex_cleaning})\\nMissing baseline (n = {miss_out})\\nMissing covariate data (n = {miss_cov})")
+      [5]: glue("Model Building\\n(N = xxx)")
+
+
+      ')
+
+```
+
